@@ -16,7 +16,11 @@ Default: groq
 
 import os
 import requests
+import urllib3
 from dotenv import load_dotenv
+
+# Silence InsecureRequestWarning for corporate networks when verify=False is used
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 try:
     from groq import Groq

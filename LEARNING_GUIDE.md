@@ -925,3 +925,31 @@ driver = webdriver.Chrome(options=options)  # Auto-downloads driver
 ---
 
 **Happy Testing! 🚀**
+
+---
+### Change: Log engine & warning fixes
+- Timestamp: 2025-11-11T15:52:02.961181 UTC
+- Why: Record engine (Playwright/Selenium) in healing logs and suppress SSL/pytest warnings; ensure tests pass and logs show engine correctly.
+- Files changed:
+  - core/ai_healer.py
+  - ai_gateway.py
+  - pytest.ini
+  - tests/test_ai_healing.py
+  - tests/test_ai_healing_dual.py
+  - scripts/append_learning_log.py
+- Test result: 2 passed, 4 deselected; warnings suppressed via pytest.ini
+
+
+---
+### Change: Log engine & warning fixes
+- Timestamp: 2025-11-11T15:52:24.738983+00:00 UTC
+- Why: Record engine (Playwright/Selenium) in healing logs and suppress SSL/pytest warnings; ensure tests pass and logs show engine correctly.
+- Files changed:
+  - core/ai_healer.py
+  - ai_gateway.py
+  - pytest.ini
+  - tests/test_ai_healing.py
+  - tests/test_ai_healing_dual.py
+  - scripts/append_learning_log.py
+- Test result: 2 passed, 4 deselected; warnings suppressed via pytest.ini
+

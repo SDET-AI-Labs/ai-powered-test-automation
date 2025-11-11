@@ -26,16 +26,22 @@ class AIHealer:
     # ------------------------------------------------------------
     # PUBLIC API
     # ------------------------------------------------------------
-    def heal_locator(self, page: Page, failed_locator: str, context_hint: str = "") -> str:
+    def heal_locator(self, page: Page, failed_locator: str, context_hint: str = "", engine: str = "Playwright") -> str:
         """
         Called when a locator fails.
         Sends page HTML + broken locator + optional context hint to AI.
         Returns a new locator suggestion (CSS/XPath).
+        
+        Args:
+            page: Playwright Page object (used to extract HTML)
+            failed_locator: The locator that failed
+            context_hint: Optional hint for AI (e.g., "Find the submit button")
+            engine: The framework being used ("Playwright" or "Selenium")
         """
         html_content = page.content()
         prompt = f"""
         You are an automation test assistant.
-        The following Playwright locator failed: "{failed_locator}".
+        The following {engine} locator failed: "{failed_locator}".
         The page HTML is below.
 
         {context_hint}
@@ -50,7 +56,7 @@ class AIHealer:
         """
 
         new_locator = self.ai.ask(prompt).strip()
-        
+
         # Clean the AI response - remove markdown, backticks, quotes
         new_locator = new_locator.strip('`"\'')
         # Remove common markdown patterns
@@ -60,8 +66,8 @@ class AIHealer:
         if '\n' in new_locator:
             new_locator = new_locator.split('\n')[0].strip()
 
-        # Log the healing attempt
-        self._log_healing(failed_locator, new_locator, "Playwright")
+        # Log the healing attempt (record engine properly)
+        self._log_healing(failed_locator, new_locator, engine)
         return new_locator
 
     # ------------------------------------------------------------
