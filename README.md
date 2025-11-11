@@ -55,11 +55,12 @@ pytest -s -v
 3. Generate API key
 4. Add to `.env`: `GROQ_API_KEY=your_key_here`
 
-### DeepSeek (Affordable & Competitive) 💎
-1. Visit: https://platform.deepseek.com/api_keys
-2. Sign up for account
+### OpenRouter (Free Relay - DeepSeek + 200+ Models) 🌐
+1. Visit: https://openrouter.ai/keys
+2. Sign up for free account
 3. Generate API key
-4. Add to `.env`: `DEEPSEEK_API_KEY=your_key_here`
+4. Add to `.env`: `OPENROUTER_API_KEY=your_key_here`
+5. **Access to DeepSeek and 200+ models via free relay!**
 
 ### Gemini (Backup - Free & Reliable) ✅
 1. Visit: https://aistudio.google.com/app/apikey
@@ -79,15 +80,16 @@ pytest -s -v
 
 **To switch providers**, edit `.env`:
 ```bash
-AI_PROVIDER=groq       # Default - Fast & Free
-AI_PROVIDER=deepseek   # Affordable & Competitive
-AI_PROVIDER=gemini     # Backup #1 - Reliable
-AI_PROVIDER=openai     # Paid option
+AI_PROVIDER=groq        # Default - Fast & Free
+AI_PROVIDER=openrouter  # Free relay - DeepSeek + 200+ models
+AI_PROVIDER=gemini      # Backup #1 - Reliable
+AI_PROVIDER=openai      # Paid option
 ```
 
 **Provider Priority:**
 1. 🥇 Groq - Fast, free, reliable (DEFAULT)
-2. 🥈 Gemini - Free, stable (BACKUP)
+2. 🥈 OpenRouter - Free relay, DeepSeek access (NEW)
+3. 🥉 Gemini - Free, stable (BACKUP)
 3. 🥉 OpenAI - Paid, high quality
 4. ⚠️ HuggingFace - Low priority (API deprecated)
 5. 🏠 Ollama - Local only (requires server)

@@ -2,12 +2,12 @@
 ai_gateway.py - Unified AI Gateway
 -------------------------------------------------
 Supported Providers (Priority Order):
-  1. ✅ Groq      (DEFAULT - free, ultra-fast, recommended)
-  2. ✅ DeepSeek  (free, competitive pricing, good quality)
-  3. ✅ Gemini    (free, reliable)
-  4. ✅ OpenAI    (paid, stable)
-  5. ⚠️  HF       (BACKUP ONLY - API deprecated/unstable)
-  6. 🏠 Ollama    (local, requires server)
+  1. ✅ Groq        (DEFAULT - free, ultra-fast, recommended)
+  2. ✅ OpenRouter  (free relay, access to DeepSeek & 200+ models)
+  3. ✅ Gemini      (free, reliable)
+  4. ✅ OpenAI      (paid, stable)
+  5. ⚠️  HF         (BACKUP ONLY - API deprecated/unstable)
+  6. 🏠 Ollama      (local, requires server)
 
 Toggle providers via AI_PROVIDER in .env
 Default: groq
@@ -42,12 +42,12 @@ class AIGateway:
     ------------------
     To switch providers, update AI_PROVIDER in .env:
     
-    AI_PROVIDER=groq      # ✅ DEFAULT - Fast, free, reliable (RECOMMENDED)
-    AI_PROVIDER=deepseek  # ✅ NEW - Fast, affordable, competitive
-    AI_PROVIDER=gemini    # ✅ Free, stable alternative
-    AI_PROVIDER=openai    # 💰 Paid, high quality
-    AI_PROVIDER=hf        # ⚠️ LOW PRIORITY - API deprecated, use only as last resort
-    AI_PROVIDER=ollama    # 🏠 Requires local server: ollama serve
+    AI_PROVIDER=groq        # ✅ DEFAULT - Fast, free, reliable (RECOMMENDED)
+    AI_PROVIDER=openrouter  # ✅ NEW - Free relay, DeepSeek + 200+ models
+    AI_PROVIDER=gemini      # ✅ Free, stable alternative
+    AI_PROVIDER=openai      # 💰 Paid, high quality
+    AI_PROVIDER=hf          # ⚠️ LOW PRIORITY - API deprecated, use only as last resort
+    AI_PROVIDER=ollama      # 🏠 Requires local server: ollama serve
     """
 
     def __init__(self):
@@ -58,7 +58,7 @@ class AIGateway:
         self.openai_key = os.getenv("OPENAI_API_KEY")
         self.groq_key = os.getenv("GROQ_API_KEY")
         self.gemini_key = os.getenv("GEMINI_API_KEY")
-        self.deepseek_key = os.getenv("DEEPSEEK_API_KEY")
+        self.openrouter_key = os.getenv("OPENROUTER_API_KEY")
         self.hf_key = os.getenv("HF_API_KEY")
 
         if self.provider == "openai" and self.openai_key:
@@ -73,13 +73,8 @@ class AIGateway:
             http_client = httpx.Client(verify=False)
             self.client = Groq(api_key=self.groq_key, http_client=http_client)
 
-        elif self.provider == "deepseek" and self.deepseek_key:
-            if OpenAI is None:
-                raise ImportError("OpenAI package not installed. Run: pip install openai")
-            self.client = OpenAI(
-                api_key=self.deepseek_key,
-                base_url="https://api.deepseek.com"
-            )
+        elif self.provider == "openrouter" and self.openrouter_key:
+            self.client = None
 
         elif self.provider == "gemini" and self.gemini_key:
             if genai is None:
@@ -105,8 +100,8 @@ class AIGateway:
                 return self._ask_openai(prompt)
             elif self.provider == "groq":
                 return self._ask_groq(prompt)
-            elif self.provider == "deepseek":
-                return self._ask_deepseek(prompt)
+            elif self.provider == "openrouter":
+                return self._ask_openrouter(prompt)
             elif self.provider == "gemini":
                 return self._ask_gemini(prompt)
             elif self.provider == "ollama":
@@ -133,12 +128,25 @@ class AIGateway:
         )
         return response.choices[0].message.content.strip()
 
-    def _ask_deepseek(self, prompt: str) -> str:
-        response = self.client.chat.completions.create(
-            model="deepseek-chat",
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return response.choices[0].message.content.strip()
+    def _ask_openrouter(self, prompt: str) -> str:
+        """Call DeepSeek (or any) model via OpenRouter API."""
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.openrouter_key}",
+            "HTTP-Referer": "http://localhost",
+            "X-Title": "AI-TestOps-Gateway",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": "deepseek/deepseek-chat",
+            "messages": [{"role": "user", "content": prompt}],
+        }
+
+        resp = requests.post(url, headers=headers, json=payload, timeout=60, verify=False)
+        if resp.status_code != 200:
+            return f"[OpenRouter Error] {resp.status_code}: {resp.text[:200]}"
+        data = resp.json()
+        return data["choices"][0]["message"]["content"].strip()
 
     def _ask_gemini(self, prompt: str) -> str:
         model = genai.GenerativeModel("gemini-2.5-flash")
