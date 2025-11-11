@@ -1,0 +1,131 @@
+"""
+Git Hooks Installer
+===================
+Installs custom Git hooks for security and automation.
+
+Available hooks:
+- pre-push: Runs security scan to detect sensitive data before pushing
+
+Usage:
+    python scripts/install_git_hooks.py
+    
+This will copy hooks from .githooks/ to .git/hooks/ and make them executable.
+"""
+
+import shutil
+import sys
+import stat
+from pathlib import Path
+
+
+def make_executable(file_path: Path):
+    """Make a file executable (Unix/Mac)."""
+    try:
+        current_permissions = file_path.stat().st_mode
+        file_path.chmod(current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    except Exception as e:
+        print(f"⚠️  Warning: Could not make {file_path.name} executable: {e}")
+
+
+def install_hooks():
+    """Install Git hooks from .githooks/ to .git/hooks/."""
+    project_root = Path(__file__).resolve().parents[1]
+    githooks_dir = project_root / ".githooks"
+    git_hooks_dir = project_root / ".git" / "hooks"
+    
+    print("=" * 80)
+    print("🔧 Git Hooks Installer")
+    print("=" * 80)
+    print()
+    
+    # Check if .git directory exists
+    if not git_hooks_dir.parent.exists():
+        print("❌ Error: This is not a Git repository!")
+        print("   .git directory not found")
+        return 1
+    
+    # Create hooks directory if it doesn't exist
+    git_hooks_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Check if .githooks directory exists
+    if not githooks_dir.exists():
+        print("❌ Error: .githooks directory not found!")
+        print(f"   Expected: {githooks_dir}")
+        return 1
+    
+    # Find all hook files
+    hook_files = [f for f in githooks_dir.iterdir() if f.is_file() and not f.name.startswith('.')]
+    
+    if not hook_files:
+        print("⚠️  Warning: No hook files found in .githooks/")
+        return 1
+    
+    print(f"Found {len(hook_files)} hook(s) to install:")
+    print()
+    
+    installed = 0
+    for hook_file in hook_files:
+        destination = git_hooks_dir / hook_file.name
+        
+        print(f"📄 Installing: {hook_file.name}")
+        
+        # Check if hook already exists
+        if destination.exists():
+            print(f"   ⚠️  Hook already exists: {destination}")
+            response = input("   Overwrite? (y/N): ").strip().lower()
+            if response != 'y':
+                print("   ⏭️  Skipped")
+                print()
+                continue
+        
+        try:
+            # Copy the hook
+            shutil.copy2(hook_file, destination)
+            
+            # Make executable (for Unix/Mac)
+            make_executable(destination)
+            
+            print(f"   ✅ Installed to: {destination.relative_to(project_root)}")
+            installed += 1
+            
+        except Exception as e:
+            print(f"   ❌ Failed to install: {e}")
+        
+        print()
+    
+    print("=" * 80)
+    if installed > 0:
+        print(f"✅ Successfully installed {installed} hook(s)!")
+        print()
+        print("🔒 Security hook (pre-push) is now active:")
+        print("   - Runs automatically before every 'git push'")
+        print("   - Scans for API keys, secrets, and sensitive data")
+        print("   - Blocks push if issues are detected")
+        print()
+        print("To bypass (NOT RECOMMENDED):")
+        print("   git push --no-verify")
+        print()
+        print("To test manually:")
+        print("   python scripts/check_private_data.py")
+    else:
+        print("⚠️  No hooks were installed")
+    print("=" * 80)
+    print()
+    
+    return 0
+
+
+def main():
+    try:
+        return install_hooks()
+    except KeyboardInterrupt:
+        print()
+        print("❌ Installation cancelled")
+        return 1
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

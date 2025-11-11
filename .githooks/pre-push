@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+"""
+Git Pre-Push Hook - Security Check
+===================================
+Automatically runs security scan before every git push.
+Prevents pushing if sensitive data is detected.
+
+Installation:
+    Copy this file to: .git/hooks/pre-push
+    Or run: python scripts/install_git_hooks.py
+    
+This hook is called with the following parameters:
+$1 -- Name of the remote to which the push is being done
+$2 -- URL to which the push is being done
+"""
+
+import sys
+import subprocess
+from pathlib import Path
+
+
+def main():
+    """Run security check before push."""
+    # Get project root
+    project_root = Path(__file__).resolve().parents[2]
+    security_script = project_root / "scripts" / "check_private_data.py"
+    
+    if not security_script.exists():
+        print("⚠️  Warning: Security check script not found!")
+        print(f"   Expected: {security_script}")
+        print("   Skipping security check...")
+        return 0
+    
+    print()
+    print("🔒 Running pre-push security check...")
+    print()
+    
+    # Run the security check script
+    result = subprocess.run(
+        [sys.executable, str(security_script)],
+        cwd=project_root,
+        capture_output=False  # Show output directly
+    )
+    
+    if result.returncode != 0:
+        print()
+        print("❌ Pre-push hook FAILED: Security check detected issues")
+        print("   Fix the issues above and try again.")
+        print("   To bypass (NOT RECOMMENDED): git push --no-verify")
+        print()
+        return 1
+    
+    print()
+    print("✅ Pre-push security check passed!")
+    print()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
