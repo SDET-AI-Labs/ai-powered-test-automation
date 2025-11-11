@@ -2,7 +2,13 @@
 
 AI-powered test automation framework with multiple LLM provider support and intelligent test healing.
 
-## 🚀 Quick Start
+## � Documentation
+
+- **[Complete Learning Guide](LEARNING_GUIDE.md)** - Step-by-step tutorials, error explanations, and troubleshooting
+- **[Quick Start](#-quick-start)** - Get started in 5 minutes
+- **[API Keys Setup](#-getting-api-keys)** - Configure AI providers
+
+## �🚀 Quick Start
 
 ### 1. Clone the Repository
 ```bash

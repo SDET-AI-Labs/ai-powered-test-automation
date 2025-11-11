@@ -45,10 +45,20 @@ class AIHealer:
         HTML END
 
         Suggest ONE working alternative locator (CSS or XPath) that likely matches
-        the same element. Respond with only the locator string.
+        the same element. Respond with ONLY the locator string, without any markdown
+        formatting, backticks, quotes, or explanations.
         """
 
         new_locator = self.ai.ask(prompt).strip()
+        
+        # Clean the AI response - remove markdown, backticks, quotes
+        new_locator = new_locator.strip('`"\'')
+        # Remove common markdown patterns
+        if new_locator.startswith('```') and new_locator.endswith('```'):
+            new_locator = new_locator[3:-3].strip()
+        # If response contains newlines, take only the first line
+        if '\n' in new_locator:
+            new_locator = new_locator.split('\n')[0].strip()
 
         # Log the healing attempt
         self._log_healing(failed_locator, new_locator, "Playwright")
