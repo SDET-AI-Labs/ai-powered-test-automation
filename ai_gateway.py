@@ -3,10 +3,11 @@ ai_gateway.py - Unified AI Gateway
 -------------------------------------------------
 Supported Providers (Priority Order):
   1. ✅ Groq      (DEFAULT - free, ultra-fast, recommended)
-  2. ✅ Gemini    (BACKUP #1 - free, reliable)
-  3. ✅ OpenAI   (paid, stable)
-  4. ⚠️  HF       (BACKUP ONLY - API deprecated/unstable)
-  5. 🏠 Ollama   (local, requires server)
+  2. ✅ DeepSeek  (free, competitive pricing, good quality)
+  3. ✅ Gemini    (free, reliable)
+  4. ✅ OpenAI    (paid, stable)
+  5. ⚠️  HF       (BACKUP ONLY - API deprecated/unstable)
+  6. 🏠 Ollama    (local, requires server)
 
 Toggle providers via AI_PROVIDER in .env
 Default: groq
@@ -41,11 +42,12 @@ class AIGateway:
     ------------------
     To switch providers, update AI_PROVIDER in .env:
     
-    AI_PROVIDER=groq     # ✅ DEFAULT - Fast, free, reliable (RECOMMENDED)
-    AI_PROVIDER=gemini   # ✅ BACKUP #1 - Free, stable alternative
-    AI_PROVIDER=openai   # 💰 Paid, high quality
-    AI_PROVIDER=hf       # ⚠️ LOW PRIORITY - API deprecated, use only as last resort
-    AI_PROVIDER=ollama   # 🏠 Requires local server: ollama serve
+    AI_PROVIDER=groq      # ✅ DEFAULT - Fast, free, reliable (RECOMMENDED)
+    AI_PROVIDER=deepseek  # ✅ NEW - Fast, affordable, competitive
+    AI_PROVIDER=gemini    # ✅ Free, stable alternative
+    AI_PROVIDER=openai    # 💰 Paid, high quality
+    AI_PROVIDER=hf        # ⚠️ LOW PRIORITY - API deprecated, use only as last resort
+    AI_PROVIDER=ollama    # 🏠 Requires local server: ollama serve
     """
 
     def __init__(self):
@@ -56,6 +58,7 @@ class AIGateway:
         self.openai_key = os.getenv("OPENAI_API_KEY")
         self.groq_key = os.getenv("GROQ_API_KEY")
         self.gemini_key = os.getenv("GEMINI_API_KEY")
+        self.deepseek_key = os.getenv("DEEPSEEK_API_KEY")
         self.hf_key = os.getenv("HF_API_KEY")
 
         if self.provider == "openai" and self.openai_key:
@@ -69,6 +72,14 @@ class AIGateway:
             import httpx
             http_client = httpx.Client(verify=False)
             self.client = Groq(api_key=self.groq_key, http_client=http_client)
+
+        elif self.provider == "deepseek" and self.deepseek_key:
+            if OpenAI is None:
+                raise ImportError("OpenAI package not installed. Run: pip install openai")
+            self.client = OpenAI(
+                api_key=self.deepseek_key,
+                base_url="https://api.deepseek.com"
+            )
 
         elif self.provider == "gemini" and self.gemini_key:
             if genai is None:
@@ -94,6 +105,8 @@ class AIGateway:
                 return self._ask_openai(prompt)
             elif self.provider == "groq":
                 return self._ask_groq(prompt)
+            elif self.provider == "deepseek":
+                return self._ask_deepseek(prompt)
             elif self.provider == "gemini":
                 return self._ask_gemini(prompt)
             elif self.provider == "ollama":
@@ -116,6 +129,13 @@ class AIGateway:
     def _ask_groq(self, prompt: str) -> str:
         response = self.client.chat.completions.create(
             model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.choices[0].message.content.strip()
+
+    def _ask_deepseek(self, prompt: str) -> str:
+        response = self.client.chat.completions.create(
+            model="deepseek-chat",
             messages=[{"role": "user", "content": prompt}],
         )
         return response.choices[0].message.content.strip()

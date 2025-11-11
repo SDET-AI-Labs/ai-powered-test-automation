@@ -55,6 +55,12 @@ pytest -s -v
 3. Generate API key
 4. Add to `.env`: `GROQ_API_KEY=your_key_here`
 
+### DeepSeek (Affordable & Competitive) 💎
+1. Visit: https://platform.deepseek.com/api_keys
+2. Sign up for account
+3. Generate API key
+4. Add to `.env`: `DEEPSEEK_API_KEY=your_key_here`
+
 ### Gemini (Backup - Free & Reliable) ✅
 1. Visit: https://aistudio.google.com/app/apikey
 2. Sign in with Google account
@@ -73,9 +79,10 @@ pytest -s -v
 
 **To switch providers**, edit `.env`:
 ```bash
-AI_PROVIDER=groq     # Default - Fast & Free
-AI_PROVIDER=gemini   # Backup #1 - Reliable
-AI_PROVIDER=openai   # Paid option
+AI_PROVIDER=groq       # Default - Fast & Free
+AI_PROVIDER=deepseek   # Affordable & Competitive
+AI_PROVIDER=gemini     # Backup #1 - Reliable
+AI_PROVIDER=openai     # Paid option
 ```
 
 **Provider Priority:**
