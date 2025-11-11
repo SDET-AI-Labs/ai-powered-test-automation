@@ -58,6 +58,8 @@ SAFE_FILES = {
     "*.pfx",
     "LEARNING_GUIDE.md",  # Contains examples and documentation
     "README.md",          # May contain example API keys
+    "README_SECURITY.md", # Security documentation with examples
+    "check_private_data.py",  # Contains regex patterns that match itself
 }
 
 # Directories to skip

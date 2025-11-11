@@ -31,13 +31,20 @@ def main():
         print("   Skipping security check...")
         return 0
     
+    # Try to use venv Python on Windows
+    venv_python = project_root / "venv" / "Scripts" / "python.exe"
+    if venv_python.exists():
+        python_exe = str(venv_python)
+    else:
+        python_exe = sys.executable
+    
     print()
     print("🔒 Running pre-push security check...")
     print()
     
     # Run the security check script
     result = subprocess.run(
-        [sys.executable, str(security_script)],
+        [python_exe, str(security_script)],
         cwd=project_root,
         capture_output=False  # Show output directly
     )
