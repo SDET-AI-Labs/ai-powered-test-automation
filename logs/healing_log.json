@@ -47,4 +47,5 @@
     "old_locator": "input#wrong_id",
     "new_locator": "input#fname"
   }
-]
+]{"timestamp": "2025-11-11T21:51:45.733184", "framework": "playwright", "success": true, "original_locator": "input#wrong_id", "repaired_locator": "input#fname", "confidence": "high", "error": null}
+{"timestamp": "2025-11-11T21:51:58.174165", "framework": "selenium", "success": true, "original_locator": "input#wrong_id", "repaired_locator": "input#fname", "confidence": "high", "error": null}
