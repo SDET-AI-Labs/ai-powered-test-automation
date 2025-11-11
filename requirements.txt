@@ -1,0 +1,8 @@
+﻿pytest>=7.0.0
+playwright
+pytest-playwright
+openai
+python-dotenv
+groq
+google-generativeai
+requests
