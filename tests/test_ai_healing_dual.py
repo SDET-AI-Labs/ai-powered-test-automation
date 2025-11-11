@@ -62,7 +62,7 @@ def test_ai_healing_playwright_and_selenium(tmp_path):
             print(f"   Error: {str(e)[:80]}...")
             
             print("🤖 Triggering AI-Healer...")
-            healed_locator = healer.heal_locator(page, failed_locator, context_hint)
+            healed_locator = healer.heal_locator(page, failed_locator, context_hint, engine="Playwright")
             print(f"✨ AI suggested (Playwright): {healed_locator}")
             
             page.locator(healed_locator).fill("John (PW-Healed)")
@@ -98,7 +98,8 @@ def test_ai_healing_playwright_and_selenium(tmp_path):
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
             page.set_content(html_content)
-            healed_locator = healer.heal_locator(page, failed_locator, context_hint)
+            # Pass engine="Selenium" to log correctly
+            healed_locator = healer.heal_locator(page, failed_locator, context_hint, engine="Selenium")
             browser.close()
 
         print(f"✨ AI suggested (Selenium): {healed_locator}")

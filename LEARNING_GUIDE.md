@@ -953,3 +953,17 @@ driver = webdriver.Chrome(options=options)  # Auto-downloads driver
   - scripts/append_learning_log.py
 - Test result: 2 passed, 4 deselected; warnings suppressed via pytest.ini
 
+
+---
+### Change: Security system: Prevent sensitive data leaks
+- Timestamp: 2025-11-11T16:02:19.888318+00:00 UTC
+- Why: User asked 'yes ok what always check for private data not pushed?' - implemented automated security scanner with Git hooks to prevent API keys and secrets from being pushed to GitHub
+- Files changed:
+  - scripts/check_private_data.py
+  - scripts/install_git_hooks.py
+  - .githooks/pre-push
+  - scripts/README_SECURITY.md
+  - pytest.ini
+  - scripts/append_learning_log.py
+- Test result: Scanner tested: 14 files scanned across 16 types, 15+ sensitive patterns detected (OpenAI, Groq, Gemini, OpenRouter, AWS, SSH, JWT, credit cards, emails, IPs), whitelist system working (ignores placeholders like your_key_here), Git pre-push hook installed and active, documentation complete, exit code 0 (safe)
+

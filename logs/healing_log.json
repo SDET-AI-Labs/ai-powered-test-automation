@@ -1,11 +1,50 @@
 [
   {
-    "timestamp": "2025-11-11T00:00:00",
-    "test_name": "initial_setup",
-    "failure_type": "none",
-    "suggested_fix": "Healing log initialized",
-    "applied": false,
-    "success": false,
-    "notes": "This is the initial healing log file. Healing actions will be logged here."
+    "timestamp": "2025-11-11T19:50:22.595614",
+    "engine": "Playwright",
+    "old_locator": "input#wrong_id",
+    "new_locator": "input#fname"
+  },
+  {
+    "timestamp": "2025-11-11T19:50:27.904462",
+    "engine": "Selenium",
+    "old_locator": "input#wrong_id",
+    "new_locator": "input#fname"
+  },
+  {
+    "timestamp": "2025-11-11T21:20:11.152562",
+    "engine": "Playwright",
+    "old_locator": "input#wrong_id",
+    "new_locator": "input#firstname"
+  },
+  {
+    "timestamp": "2025-11-11T21:20:16.911339",
+    "engine": "Playwright",
+    "old_locator": "input#wrong_id",
+    "new_locator": "input#fname"
+  },
+  {
+    "timestamp": "2025-11-11T21:20:22.824578",
+    "engine": "Selenium",
+    "old_locator": "input#wrong_id",
+    "new_locator": "input#fname"
+  },
+  {
+    "timestamp": "2025-11-11T21:21:03.125283",
+    "engine": "Playwright",
+    "old_locator": "input#wrong_id",
+    "new_locator": "input#firstname"
+  },
+  {
+    "timestamp": "2025-11-11T21:21:09.122544",
+    "engine": "Playwright",
+    "old_locator": "input#wrong_id",
+    "new_locator": "input#fname"
+  },
+  {
+    "timestamp": "2025-11-11T21:21:14.217994",
+    "engine": "Selenium",
+    "old_locator": "input#wrong_id",
+    "new_locator": "input#fname"
   }
 ]

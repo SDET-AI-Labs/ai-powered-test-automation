@@ -57,7 +57,8 @@ def test_ai_locator_self_healing(tmp_path):
             healed_locator = healer.heal_locator(
                 page, 
                 failed_locator, 
-                context_hint="Find the first name input field"
+                context_hint="Find the first name input field",
+                engine="Playwright"
             )
 
             print(f"[AI-Healer] Suggested new locator: {healed_locator}")
