@@ -1,16 +1,45 @@
 """
-SmartLocator - Self-Healing Locator Wrapper
-============================================
+SmartLocator - Self-Healing Locator Wrapper with Universal Locator Support
+===========================================================================
 
 Wraps a locator string with AI-powered auto-healing capabilities.
+Supports ALL major locator types for both Playwright and Selenium.
+
+Supported Locator Types:
+------------------------
+
+PLAYWRIGHT:
+- CSS Selector: "button#submit", ".btn-primary", "input[name='username']"
+- XPath: "//button[@id='submit']", "xpath=//button"
+- Text: "text=Click Here", "text='Exact match'"
+- Role: "role=button[name='Submit']"
+- Test ID: "[data-testid=login-btn]", "data-testid=login-btn"
+- Label: "label=Username"
+- Placeholder: "placeholder=Enter name"
+- Alt Text: "alt=Logo"
+- Title: "title=Submit form"
+
+SELENIUM:
+- CSS Selector: "button#submit", ".btn-primary" (default)
+- XPath: "//button[@id='submit']", "xpath=//button"
+- ID: "id=submit", "#submit"
+- Name: "name=username"
+- Class: "class=btn-primary", ".btn-primary"
+- Tag: "tag=button"
+- Link Text: "link=Click Here"
+- Partial Link: "partial_link=Click"
 
 Example:
     # Playwright
     locator = SmartLocator("button#submit", adapter=PlaywrightAdapter(page))
+    locator = SmartLocator("text=Submit", adapter=PlaywrightAdapter(page))
+    locator = SmartLocator("role=button[name='Submit']", adapter=PlaywrightAdapter(page))
     locator.click()  # Auto-heals if locator breaks
     
     # Selenium
-    locator = SmartLocator("//button[@id='submit']", adapter=SeleniumAdapter(driver))
+    locator = SmartLocator("id=submit", adapter=SeleniumAdapter(driver))
+    locator = SmartLocator("xpath=//button[@id='submit']", adapter=SeleniumAdapter(driver))
+    locator = SmartLocator("link=Click Here", adapter=SeleniumAdapter(driver))
     locator.click()  # Same API, different framework!
 """
 
@@ -19,7 +48,6 @@ import sys
 from pathlib import Path
 
 # Import locator repair service
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from services.locator_repair import LocatorRepairService
 
 from .framework_adapter import FrameworkAdapter
@@ -179,3 +207,133 @@ class SmartLocator:
         """Reset to original locator."""
         self.current_locator = self.original_locator
         self.healed = False
+    
+    # ==================== FORM CONTROLS (with auto-healing) ====================
+    
+    def check(self):
+        """Check checkbox (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.check_checkbox(loc)
+        )
+    
+    def uncheck(self):
+        """Uncheck checkbox (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.uncheck_checkbox(loc)
+        )
+    
+    def is_checked(self) -> bool:
+        """Check if checkbox/radio is checked (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.is_checked(loc)
+        )
+    
+    def select_option(self, value: str, by: str = "value"):
+        """
+        Select dropdown option (with auto-healing).
+        
+        Args:
+            value: Value to select
+            by: Selection method - "value", "label"/"text", or "index"
+        """
+        return self._execute_with_healing(
+            lambda loc: self.adapter.select_dropdown(loc, value, by)
+        )
+    
+    def get_selected_option(self) -> str:
+        """Get selected dropdown option (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.get_selected_option(loc)
+        )
+    
+    def upload_file(self, file_path: str):
+        """Upload file (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.upload_file(loc, file_path)
+        )
+    
+    # ==================== HOVER & VISIBILITY (with auto-healing) ====================
+    
+    def hover(self):
+        """Hover over element for tooltips/dropdowns (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.hover(loc)
+        )
+    
+    def wait_visible(self, timeout: int = 10) -> bool:
+        """Wait for element to be visible (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.wait_for_visible(loc, timeout)
+        )
+    
+    def wait_hidden(self, timeout: int = 10) -> bool:
+        """Wait for element to be hidden (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.wait_for_hidden(loc, timeout)
+        )
+    
+    def is_enabled(self) -> bool:
+        """Check if element is enabled (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.is_enabled(loc)
+        )
+    
+    # ==================== ATTRIBUTES & PROPERTIES (with auto-healing) ====================
+    
+    def get_attribute(self, attribute: str) -> Optional[str]:
+        """Get element attribute (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.get_attribute(loc, attribute)
+        )
+    
+    def get_property(self, property_name: str):
+        """Get element property (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.get_property(loc, property_name)
+        )
+    
+    def get_value(self) -> str:
+        """Get input/textarea value (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.get_value(loc)
+        )
+    
+    # ==================== ACTIONS (with auto-healing) ====================
+    
+    def double_click(self):
+        """Double-click element (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.double_click(loc)
+        )
+    
+    def right_click(self):
+        """Right-click element for context menu (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.right_click(loc)
+        )
+    
+    def drag_to(self, target_locator: str):
+        """Drag this element to target (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.drag_and_drop(loc, target_locator)
+        )
+    
+    def scroll_into_view(self):
+        """Scroll element into view (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.scroll_into_view(loc)
+        )
+    
+    def press_key(self, key: str):
+        """Press keyboard key on element (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.press_key(loc, key)
+        )
+    
+    # ==================== MULTI-ELEMENT (with auto-healing) ====================
+    
+    def count(self) -> int:
+        """Get count of matching elements (with auto-healing)."""
+        return self._execute_with_healing(
+            lambda loc: self.adapter.get_element_count(loc)
+        )

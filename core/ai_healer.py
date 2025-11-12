@@ -45,7 +45,10 @@ class AIHealer:
     def __init__(
         self, 
         log_path: str = "logs/healing_log.json",
-        cache_path: str = "logs/healing_cache.json"
+        cache_path: str = "logs/healing_cache.json",
+        enable_vision: bool = False,
+        baseline_screenshot: str = None,
+        current_screenshot: str = None
     ):
         """
         Initialize AI Healer with logging and caching.
@@ -53,10 +56,26 @@ class AIHealer:
         Args:
             log_path: Path to healing log file
             cache_path: Path to healing cache file
+            enable_vision: Enable visual fallback healing (optional)
+            baseline_screenshot: Path to baseline screenshot for visual comparison
+            current_screenshot: Path to current screenshot for visual comparison
         """
         self.ai = AIGateway()
         self.log_path = log_path
         self.cache_path = cache_path
+        self.enable_vision = enable_vision
+        self.baseline_screenshot = baseline_screenshot
+        self.current_screenshot = current_screenshot
+        
+        # Initialize VisionAnalyzer if vision enabled
+        self.vision_analyzer = None
+        if enable_vision:
+            try:
+                from core.vision_analyzer import VisionAnalyzer
+                self.vision_analyzer = VisionAnalyzer(ai_gateway=self.ai)
+                print("[AI-Healer] 👁️ Vision fallback enabled")
+            except Exception as e:
+                print(f"[AI-Healer] ⚠️ Vision fallback disabled: {e}")
         
         # Initialize cache dictionary
         self.cache: Dict[str, str] = {}
@@ -191,12 +210,35 @@ class AIHealer:
                 healing_source = "fallback"
                 print(f"[AI-Healer] 🔄 Using fallback locator: {new_locator}")
         
-        # 4. Cache successful healing
+        # 4. If heuristic failed, try visual fallback (if enabled)
+        if new_locator == failed_locator and self.vision_analyzer:
+            if self.baseline_screenshot and self.current_screenshot:
+                try:
+                    print(f"[AI-Healer] 👁️ Attempting visual fallback...")
+                    visual_diffs = self.vision_analyzer.detect_visual_anomalies(
+                        self.baseline_screenshot,
+                        self.current_screenshot,
+                        threshold=0.85
+                    )
+                    if visual_diffs:
+                        visual_locator = self.vision_analyzer.suggest_locator_from_visuals(
+                            visual_diffs,
+                            context_hint,
+                            engine
+                        )
+                        if visual_locator:
+                            new_locator = visual_locator
+                            healing_source = "vision"
+                            print(f"[AI-Healer] 👁️ Using vision-based locator: {new_locator}")
+                except Exception as e:
+                    print(f"[AI-Healer] ⚠️ Visual fallback failed: {e}")
+        
+        # 5. Cache successful healing
         if new_locator != failed_locator:
             self.cache[cache_key] = new_locator
             self._save_cache()
         
-        # 5. Log healing event
+        # 6. Log healing event
         latency_ms = (time.perf_counter() - start_time) * 1000
         self._log_healing(
             old_locator=failed_locator,

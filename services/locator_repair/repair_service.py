@@ -32,9 +32,8 @@ import json
 from pathlib import Path
 import sys
 
-# Import AI Gateway from core
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from ai_gateway import AIGateway
+# Import AI Gateway from same service
+from .ai_gateway import AIGateway
 
 
 @dataclass
