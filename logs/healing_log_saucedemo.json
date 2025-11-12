@@ -1,0 +1,32 @@
+[
+  {
+    "timestamp": "2025-11-12T15:21:11.466357",
+    "engine": "Playwright",
+    "old_locator": "#user-name-broken-field-xyz",
+    "new_locator": "[data-test=\"username\"]",
+    "healing_source": "ai",
+    "latency_ms": 4378.46,
+    "context_hint": "This is the username input field, likely has id='user-name'",
+    "success": true
+  },
+  {
+    "timestamp": "2025-11-12T15:21:26.337472",
+    "engine": "Playwright",
+    "old_locator": "#user-name-broken-field-xyz",
+    "new_locator": "[data-test=\"username\"]",
+    "healing_source": "cache",
+    "latency_ms": 0.0,
+    "context_hint": "This is the username input field, likely has id='user-name'",
+    "success": true
+  },
+  {
+    "timestamp": "2025-11-12T15:22:25.728828",
+    "engine": "Playwright",
+    "old_locator": "#user-name-broken-field-xyz",
+    "new_locator": "[data-test=\"username\"]",
+    "healing_source": "cache",
+    "latency_ms": 0.01,
+    "context_hint": "This is the username input field, likely has id='user-name'",
+    "success": true
+  }
+]

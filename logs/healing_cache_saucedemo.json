@@ -1,0 +1,3 @@
+{
+  "Playwright:#user-name-broken-field-xyz:This is the username input field, likely has id='user-name'": "[data-test=\"username\"]"
+}

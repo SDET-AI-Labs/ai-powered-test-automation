@@ -785,3 +785,500 @@ To rebuild after code changes:
 
 docker-compose build --no-cache
 ====================================================================
+🧩 1️⃣ Quick Technical Recon — cargainqa.rategain.com/#/Login
+
+Front-end Stack: Angular / React hybrid (Webpack bundle)
+Automation Difficulty: Moderate to High
+DOM Type: Dynamic + Shadow DOM elements (React component IDs change)
+Good Targets for AI-Healer:
+
+Login fields
+
+Password input
+
+Login button
+
+Error messages / validation labels
+
+✅ Best Use Case: Self-healing for dynamic locators — exactly what AI-Healer and SmartLocator were built for.
+
+⚙️ 2️⃣ Page Structure Overview
+
+After loading the page, you’ll see (based on recent inspection):
+
+Element	Typical Locator	Behavior
+Username	input[formcontrolname='username'] or #username	Stable but may change in builds
+Password	input[formcontrolname='password']	ID/class may change
+Login Button	button[type='submit'] or dynamic ID	React-generated, changes with build
+Error Toast	.toast-message	Appears dynamically
+Remember Me	Checkbox with dynamic label binding	Label text only
+
+This site uses Angular dynamic rendering, so Playwright/Selenium locators will occasionally fail — ideal for testing auto-healing and AI-based recovery.
+
+🧠 3️⃣ Test Objective
+
+We’re validating:
+
+AI-Healer auto-repair when locators break.
+
+SmartLocator’s context-based re-identification.
+
+VisionAnalyzer screenshot comparison after login failure.
+
+Logging + Dashboard integration (logs, vision_cache).
+
+Dockerized test execution on the same target.
+
+🧪 4️⃣ Real-World Test Cases — Cargain Login
+Test Case #1 — Valid Login (Baseline)
+Step	Action	Expected
+1	Open https://cargainqa.rategain.com/#/Login	Page loads fully
+2	Locate Username field	Locator found by SmartLocator
+3	Enter valid username	Field accepts input
+4	Enter valid password	Field accepts input
+5	Click “Login”	Dashboard/redirect occurs
+6	Capture baseline screenshot	Stored for future Vision tests
+7	Verify “Login Successful” or page redirect	Success logged
+
+✅ Confirms your framework can run without any healing trigger.
+
+Test Case #2 — Locator Broken → AI-Healer Recovery
+Step	Action	Expected
+1	Replace locator in test to a fake one (e.g. #username-broken)	Locator fails
+2	Run test with AI-Healer	Auto-healing triggers
+3	Logs show "healing_source": "ai"	Confirmed in healing_log.json
+4	New locator found (input[placeholder='Username'])	Success
+5	Field filled successfully	Test continues
+6	Healing latency logged (<500 ms avg)	Verified
+
+✅ This is your self-healing test validation — essential proof that SmartLocator + AI-Healer work.
+
+Test Case #3 — Vision Validation on Login Button
+Step	Action	Expected
+1	Capture baseline screenshot (baseline_login.png)	Stored
+2	Trigger small visual change (simulate UI shift or dark theme)	New screenshot
+3	Run VisionAnalyzer.compare_images()	Detects 5–10% diff
+4	Vision LLM explains: “Login button color changed”	✅
+5	Dashboard shows diff map	✅
+
+✅ Confirms VisionAnalyzer and Dashboard integration.
+
+Test Case #4 — Incorrect Credentials Handling
+Step	Action	Expected
+1	Enter invalid username/password	Error toast appears
+2	Capture screenshot	Stored
+3	VisionAnalyzer detects new element (toast)	✅
+4	Vision LLM describes: “Error message appeared on top”	✅
+5	Dashboard metrics update (new anomaly logged)	✅
+
+✅ Confirms Vision fallback and anomaly detection on dynamic UI elements.
+
+Test Case #5 — Regression Check via Docker
+Step	Action	Expected
+1	Run test suite via Docker	docker-compose run tests pytest -s -v tests/test_cargain_login.py
+2	Verify logs update (healing + vision)	✅
+3	Open Dashboard → Healing Logs	Shows entries for AI/vision healing
+4	All tests pass (5/5)	✅
+5	Memory < 500 MB	✅
+
+✅ Confirms your Dockerized project works end-to-end with a live app.
+
+🧰 5️⃣ Implementation Example – Playwright + AI-Healer Integration
+
+Save as tests/test_cargain_login.py:
+
+import pytest
+from core.smart_locator.smart_locator import SmartLocator
+from core.ai_healer import AIHealer
+from playwright.sync_api import sync_playwright
+
+@pytest.mark.parametrize("username,password", [("yourUser", "yourPass")])
+def test_cargain_login_healing(username, password):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        page = browser.new_page()
+        page.goto("https://cargainqa.rategain.com/#/Login")
+
+        healer = AIHealer(enable_vision=True)
+        locator = SmartLocator(page)
+
+        # Intentionally broken locator
+        broken_locator = "#username-broken"
+
+        # AI-Healer attempts repair
+        healed = healer.heal_locator(
+            page,
+            failed_locator=broken_locator,
+            context_hint="Username input field",
+            engine="Playwright"
+        )
+        assert healed is not None, "Healing failed for Username"
+
+        page.fill(healed, username)
+
+        # Now login button
+        login_locator = "#login-btn-missing"
+        healed_button = healer.heal_locator(page, login_locator, "Login button", "Playwright")
+        page.click(healed_button)
+
+        browser.close()
+
+
+✅ This test will:
+
+Trigger AI-Healer for username & login button
+
+Auto-repair missing locators
+
+Log the healing in logs/healing_log.json
+
+Optionally trigger Vision fallback if locators visually differ
+
+📊 6️⃣ Expected Logs
+
+logs/healing_log.json will show:
+
+{
+  "timestamp": "2025-11-12T14:05:33.456",
+  "engine": "Playwright",
+  "old_locator": "#username-broken",
+  "new_locator": "input[placeholder='Username']",
+  "healing_source": "ai",
+  "latency_ms": 327.2,
+  "confidence": 0.96
+}
+
+
+and VisionAnalyzer logs in logs/vision_cache.json:
+
+{
+  "description": "Login button moved slightly lower",
+  "diff_percentage": 6.8,
+  "confidence": 0.89
+}
+
+✅ 7️⃣ Run & Verify
+
+Inside your Docker setup:
+
+docker-compose up api dashboard
+docker-compose run tests pytest -s -v tests/test_cargain_login.py
+
+
+Then check:
+
+healing_log.json for AI/vision entries
+
+vision_cache.json for diff reports
+
+Dashboard (http://localhost:8501
+) → Healing Logs tab for entries
+
+🔥 8️⃣ If Everything Works
+
+Then you’ll have confirmed proof that your AI-Healer + SmartLocator + VisionAnalyzer stack heals and analyzes a real-world React/Angular login page.
+=======================================================================
+Developer Prompt — Phase 7: Universal AI Interaction Layer (AI-Interactor + Proxy Handler)
+
+Module: Universal AI Interaction Layer (aka AI-Interactor + Proxy Handler + Adapter Hardenings)
+Owner: Ram
+Mentor: Yogi (via ChatGPT)
+Repo: ai_test_foundation (work inside this repo branch: feature/universal-interactor)
+
+🎯 Objective (short & brutal)
+
+Make the framework actually test any website — including anti-automation protected SPAs — by adding an adaptive interaction layer, stealth tooling, and proxy support. Integrate it with existing SmartLocator + AIHealer so healed locators can be actually used even when .fill() or .click() are blocked.
+
+No fluff: if a site blocks conventional automation, framework must detect that and switch to safe fallbacks (JS injection, simulated human actions, proxy header scrubbing, or HTTP adapters). Tests must prove this works on https://cargainqa.rategain.com/#/Login and at least one other site (SauceDemo or The-Internet).
+
+✅ Deliverables (what you must produce)
+
+core/ai_interactor.py — new adaptive interaction engine (production-grade, typed).
+
+services/proxy_handler.py — local proxy manager (mitmproxy integration or instructions).
+
+adapters/playwright_adapter.py — hardened Playwright adapter using stealth + safe actions.
+
+Minor updates in core/ai_healer.py to call AIInteractor.safe_* methods instead of direct .fill() / .click().
+
+Fix vision tests param name issue (baseline_image → baseline_path).
+
+Tests:
+
+tests/universal/test_cargain_universal.py — checks healing + safe interactions on Cargain login.
+
+tests/universal/test_saucedemo_universal.py — backup target for visual tests.
+
+docs/UNIVERSAL_INTERACTOR.md — design, fallback hierarchy, how to run with/without proxy.
+
+Short verification report file docs/phase7_verification.md to be completed after run.
+
+⚙️ Key design rules (non-negotiable)
+
+Do not hardcode credentials or API keys in images. Use .env mounted at runtime.
+
+Keep all new code well-typed and unit-tested.
+
+Fail gracefully: if proxy not available, run reduced (no-stealth) mode and log interactor_mode: degraded.
+
+Always log interaction_method in healing logs: values = ["direct", "js_inject", "human_typing", "http_adapter", "degraded"].
+
+Keep original method signatures of public API; add optional args/flags only.
+
+📂 New file blueprints & code snippets
+1) core/ai_interactor.py (skeleton)
+
+Create the file and implement robust fallbacks:
+
+# core/ai_interactor.py
+from typing import Optional
+import time
+import logging
+from playwright.sync_api import Page, TimeoutError as PWTimeoutError
+
+log = logging.getLogger(__name__)
+
+class AIInteractor:
+    """
+    Adaptive interactor that attempts actions in order:
+      1. direct framework action (page.fill / page.click)
+      2. JS injection (set value + dispatch input events)
+      3. simulated human typing (character-by-character)
+      4. HTTP adapter (submit via REST if available) - optional
+    """
+
+    def __init__(self, page: Page, timeout: float = 5000):
+        self.page = page
+        self.timeout = timeout / 1000.0
+
+    def safe_fill(self, selector: str, value: str) -> bool:
+        start = time.perf_counter()
+        # 1) Try native fill
+        try:
+            self.page.fill(selector, value, timeout=int(self.timeout * 1000))
+            log.info("[AIInteractor] fill via native succeeded")
+            self._log_method('direct', start)
+            return True
+        except Exception as e:
+            log.warning("[AIInteractor] native fill failed: %s", e)
+
+        # 2) Try JS injection
+        try:
+            self.page.evaluate(
+                """(sel, val) => {
+                    const el = document.querySelector(sel);
+                    if (!el) return false;
+                    el.focus();
+                    el.value = val;
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                    return true;
+                }""",
+                selector,
+                value,
+            )
+            log.info("[AIInteractor] fill via JS injection succeeded")
+            self._log_method('js_inject', start)
+            return True
+        except Exception as e:
+            log.warning("[AIInteractor] js injection failed: %s", e)
+
+        # 3) Human-like typing - fallback slow but effective
+        try:
+            for ch in value:
+                self.page.type(selector, ch, delay=50)  # 50ms per char
+            log.info("[AIInteractor] fill via human typing succeeded")
+            self._log_method('human_typing', start)
+            return True
+        except Exception as e:
+            log.warning("[AIInteractor] human typing failed: %s", e)
+
+        # 4) final degrade
+        self._log_method('degraded', start)
+        return False
+
+    def safe_click(self, selector: str) -> bool:
+        # Similar pattern: try click -> js dispatch click -> focus+enter -> degrade
+        ...
+    
+    def _log_method(self, method: str, start_time: float):
+        elapsed = (time.perf_counter() - start_time) * 1000.0
+        log.info("[AIInteractor] method=%s elapsed_ms=%.2f", method, elapsed)
+        # append to healing_log via existing mechanism if needed
+
+
+Implement safe_click the same way (native .click(), then JS el.click(), then send Enter key).
+
+2) adapters/playwright_adapter.py (hardening)
+
+Wrap Playwright launching with stealth measures and env knobs.
+
+Use Playwright options: args=["--disable-blink-features=AutomationControlled"] and set navigator.webdriver via eval_on_new_document.
+
+Consider adding headers, user-agent rotation (basic) and optional proxy settings.
+
+Snippet:
+
+# adapters/playwright_adapter.py
+from playwright.sync_api import sync_playwright
+
+def launch_stealth_browser(headless=True, proxy: Optional[str] = None):
+    pw = sync_playwright().start()
+    browser = pw.chromium.launch(
+        headless=headless,
+        args=[
+            "--disable-blink-features=AutomationControlled",
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+        ],
+        proxy={"server": proxy} if proxy else None
+    )
+    context = browser.new_context()
+    # stealth: modify navigator.webdriver and other properties
+    context.add_init_script("""
+        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+        window.navigator.chrome = { runtime: {} };
+        Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] });
+    """)
+    return pw, browser, context
+
+
+Keep this as a helper used by tests or demo scripts — do NOT make it mandatory for all runs (configurable via .env).
+
+3) services/proxy_handler.py (mitmproxy or simple header scrubber)
+
+If you want deeper stealth (mitmproxy), provide launching helper and config. Minimal version: start/stop mitmproxy in Docker or instruct on external startup.
+
+Design:
+
+Provide start_proxy() / stop_proxy() helpers that optionally spawn mitmproxy subprocess with rules to rewrite headers and strip suspicious automation headers.
+
+Add env var USE_PROXY=true and PROXY_URL=http://proxy:8080.
+
+Important: For enterprise use, mitmproxy requires cert handling; document this in docs/UNIVERSAL_INTERACTOR.md and provide --insecure flags for test-only environments.
+
+🔁 Integration points — modify AI-Healer to use AIInteractor
+
+In core/ai_healer.py replace direct page.fill() / page.click() usages with calls to AIInteractor.safe_fill() and AIInteractor.safe_click() when performing healing actions. Keep API signature compatibility; simply construct AIInteractor(page) when needed.
+
+Also update healing logging to include interaction_method.
+
+🧪 Tests to add (must be robust)
+
+tests/universal/test_cargain_universal.py — end-to-end scenario:
+
+Launch Playwright in stealth mode (use adapters.playwright_adapter.launch_stealth_browser).
+
+Start API & Dashboard containers (or assume running in Docker compose test run).
+
+Run:
+
+Load login page
+
+Break locator (use deliberate broken selector)
+
+Call AIHealer.heal_locator(...)
+
+After healed locator returned, call AIInteractor.safe_fill() to input username/password (assert it returns True)
+
+Attempt login via safe_click and assert redirect or success indicator
+
+On failure due to site stricter blocks, assert that safe_fill() fell back to js_inject or human_typing (read logs).
+
+tests/universal/test_saucedemo_universal.py — same but easier site; must pass.
+
+Fix parameter bug: update any tests where baseline_image was used — rename to baseline_path.
+
+Unit tests for AIInteractor methods (mock page object with exceptions to simulate failing paths).
+
+🧾 Run & Verify (exact commands)
+
+Branch:
+
+git checkout -b feature/universal-interactor
+
+
+Run tests locally (fast mode):
+
+# install new deps
+pip install mitmproxy playwright
+playwright install chromium
+
+# unit tests
+pytest -q tests/unit/test_ai_interactor.py
+
+
+Run integration (Dockerized)
+
+# Ensure docker-compose has services api/dashboard/tests
+docker-compose up -d api dashboard
+# run test container
+docker-compose run --rm tests pytest -q tests/universal/test_cargain_universal.py::test_cargain_login_universal -s
+
+
+Expected results:
+
+AI-Healer returns healed locators (cache or ai)
+
+AIInteractor.safe_fill() returns True and logs interaction_method (either "direct", "js_inject", or "human_typing")
+
+Healing logs updated with interaction_method and interaction_latency_ms
+
+If proxy used, confirm proxy_handler logs show active proxy injection
+
+🧯 Edge Cases & Defensive Notes (be critical)
+
+Playwright stealth will fail against advanced detection (bot-detection services). We must not claim impossible: if site uses server-side verification (CAPTCHA, fingerprinting), we can’t beat it automatically — we can only detect it and report blocked_by_site.
+
+JS injection may cause events to fire differently; ensure triggering both input and change events, and if necessary blur() / focus().
+
+Human-typing delays should be randomized slightly (45–80ms) to look natural — but keep tests deterministic enough by seeding delays for tests.
+
+Mitmproxy needs cert trust for HTTPS interception — for testing, use --insecure options or configure browser context to ignore cert errors (context = browser.new_context(ignore_https_errors=True)).
+
+ALWAYS log blocked_by_site: true/false when detection of automation protection occurs (timeouts, blocked requests, unusual responses).
+
+🧾 Documentation & Reporting
+
+Add docs/UNIVERSAL_INTERACTOR.md covering:
+
+Goals & architecture
+
+How to run with/without proxy
+
+How AIInteractor chooses fallbacks
+
+Known limitations and how to interpret blocked_by_site logs
+
+Create docs/phase7_verification.md template for Ram to fill:
+
+Commit hash
+
+Tests run & results
+
+Interaction method counts
+
+Any failures with raw logs
+
+Recommendation for next step (analytics/packaging)
+
+📦 Extra (bonus improvements — not mandatory now)
+
+Add interaction_mode config: aggressive (try HTTP adapter), stealth (use proxy + stealth), safe (no proxy).
+
+Add adapters/http_adapter.py for apps where DOM impossible but REST endpoints exist: e.g., for login you may POST to /api/login if discovered.
+
+Add diagnostics endpoint in locator_repair/api.py to return last blocked_by_site events, counts, and top failed selectors.
+
+✅ Acceptance Criteria (what I’ll check)
+
+When Ram reports back, I need a short clear report:
+
+✅ Branch: feature/universal-interactor
+✅ Files added/modified: core/ai_interactor.py, adapters/playwright_adapter.py, services/proxy_handler.py, core/ai_healer.py
+✅ Unit tests: tests/unit/test_ai_interactor.py - 6/6 passed
+✅ Integration tests: tests/universal/test_cargain_universal.py - 1/1 passed
+✅ Interaction methods observed: {"direct":2,"js_inject":1,"human_typing":0}
+✅ Logs: healing_log.json includes "interaction_method" and "blocked_by_site" flags
+✅ Proxy: optional start/stop script provided and tested (mitmproxy)
+Notes: [any blockers / suggestions]

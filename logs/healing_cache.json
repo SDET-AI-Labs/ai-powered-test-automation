@@ -1,3 +1,5 @@
 {
-  "Playwright:input#wrong_id:Find the first name input field": "input#firstname"
+  "Playwright:input#wrong_id:Find the first name input field": "input#firstname",
+  "playwright:#username-field-broken-id-12345:Username input field on login page": "input[name=\"username\"]",
+  "playwright:#fake-broken-locator:Login page username field": "input[type=\"text\"][name=\"username\"]"
 }
