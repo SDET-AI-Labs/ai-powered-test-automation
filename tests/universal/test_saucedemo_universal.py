@@ -14,6 +14,7 @@ Phase: 7 - Universal Interactor
 """
 
 import pytest
+import os
 import time
 import json
 from pathlib import Path
@@ -21,10 +22,10 @@ from adapters.playwright_adapter import launch_stealth_browser
 from core.ai_healer import AIHealer
 from core.ai_interactor import AIInteractor
 
-# SauceDemo Login Page
-SAUCEDEMO_URL = "https://www.saucedemo.com/"
-SAUCEDEMO_USERNAME = "standard_user"
-SAUCEDEMO_PASSWORD = "secret_sauce"
+# SauceDemo Login Page (Public demo site with public credentials)
+SAUCEDEMO_URL = os.getenv("SAUCEDEMO_URL", "https://www.saucedemo.com/")
+SAUCEDEMO_USERNAME = os.getenv("SAUCEDEMO_USERNAME", "standard_user")  # Public demo credential
+SAUCEDEMO_PASSWORD = os.getenv("SAUCEDEMO_PASSWORD", "secret_sauce")   # Public demo credential
 
 # Paths
 REPORTS_DIR = Path("reports")
@@ -45,16 +46,16 @@ def stealth_browser():
     p = sync_playwright().start()
     
     print("[Fixture] Launching stealth browser...")
-    browser, context, page = launch_stealth_browser(headless=True, playwright_instance=p)
+    browser, context, page = launch_stealth_browser(headless=False, playwright_instance=p)  # Changed to False for visible browser
     
-    print("[Fixture] ✅ Stealth browser launched")
+    print("[Fixture] [OK] Stealth browser launched")
     
     yield browser, context, page
     
     print("[Fixture] Closing stealth browser...")
     browser.close()
     p.stop()
-    print("[Fixture] ✅ Browser closed")
+    print("[Fixture] [OK] Browser closed")
 
 
 @pytest.fixture(scope="function")
@@ -65,7 +66,7 @@ def ai_healer():
         log_path="logs/healing_log_saucedemo.json",
         cache_path="logs/healing_cache_saucedemo.json"
     )
-    print("[Fixture] ✅ AI-Healer created")
+    print("[Fixture] [OK] AI-Healer created")
     return healer
 
 
@@ -93,12 +94,12 @@ def test_saucedemo_universal_complete_workflow(stealth_browser, ai_healer):
     print("\n[Step 1] Navigating to SauceDemo...")
     page.goto(SAUCEDEMO_URL, wait_until="networkidle")
     time.sleep(1)
-    print(f"✅ Page loaded: {page.url}")
+    print(f"[OK] Page loaded: {page.url}")
     
     # Capture baseline screenshot
     baseline_path = SCREENSHOTS_DIR / "baseline_login.png"
     page.screenshot(path=str(baseline_path))
-    print(f"📸 Baseline screenshot saved: {baseline_path}")
+    print(f"[SCREENSHOT] Baseline screenshot saved: {baseline_path}")
     
     # Step 2: Use AI-Healer with a BROKEN locator
     print("\n[Step 2] Testing AI-Healer with broken locator...")
@@ -106,7 +107,7 @@ def test_saucedemo_universal_complete_workflow(stealth_browser, ai_healer):
     broken_locator = "#user-name-broken-field-xyz"
     context_hint = "This is the username input field, likely has id='user-name'"
     
-    print(f"❌ Broken locator: {broken_locator}")
+    print(f"[FAIL] Broken locator: {broken_locator}")
     
     healed_locator = ai_healer.heal_locator(
         page=page,
@@ -115,7 +116,7 @@ def test_saucedemo_universal_complete_workflow(stealth_browser, ai_healer):
         engine="Playwright"
     )
     
-    print(f"✅ Healed locator: {healed_locator}")
+    print(f"[OK] Healed locator: {healed_locator}")
     assert healed_locator != broken_locator, "AI-Healer should repair locator"
     
     # Step 3: Initialize AIInteractor
@@ -132,7 +133,7 @@ def test_saucedemo_universal_complete_workflow(stealth_browser, ai_healer):
     )
     
     assert username_success, "Username fill should succeed on SauceDemo"
-    print("✅ Username filled successfully")
+    print("[OK] Username filled successfully")
     
     # Step 5: Fill password
     print("\n[Step 5] Filling password...")
@@ -144,7 +145,7 @@ def test_saucedemo_universal_complete_workflow(stealth_browser, ai_healer):
     )
     
     assert password_success, "Password fill should succeed"
-    print("✅ Password filled successfully")
+    print("[OK] Password filled successfully")
     
     # Step 6: Click login button
     print("\n[Step 6] Clicking login button...")
@@ -155,7 +156,7 @@ def test_saucedemo_universal_complete_workflow(stealth_browser, ai_healer):
     )
     
     assert click_success, "Login button click should succeed"
-    print("✅ Login button clicked successfully")
+    print("[OK] Login button clicked successfully")
     
     # Wait for redirect
     time.sleep(2)
@@ -168,19 +169,19 @@ def test_saucedemo_universal_complete_workflow(stealth_browser, ai_healer):
     
     # SauceDemo redirects to /inventory.html on success
     assert "inventory.html" in current_url, "Should redirect to inventory page"
-    print("✅ Login succeeded - redirected to inventory page")
+    print("[OK] Login succeeded - redirected to inventory page")
     
     # Capture success screenshot
     success_path = SCREENSHOTS_DIR / "login_success.png"
     page.screenshot(path=str(success_path))
-    print(f"📸 Success screenshot saved: {success_path}")
+    print(f"[SCREENSHOT] Success screenshot saved: {success_path}")
     
     # Step 8: Verify interaction statistics
     print("\n[Step 8] Verifying interaction statistics...")
     
     stats = interactor.get_interaction_stats()
     
-    print(f"📊 Interaction Statistics:")
+    print(f"[STATS] Interaction Statistics:")
     for method, count in stats.items():
         if count > 0:
             print(f"   {method}: {count}")
@@ -188,7 +189,7 @@ def test_saucedemo_universal_complete_workflow(stealth_browser, ai_healer):
     # On SauceDemo, all should be 'direct' (no fallbacks needed)
     assert stats['direct'] >= 3, "Should have at least 3 direct interactions"
     assert stats['degraded'] == 0, "Should have no degraded interactions"
-    print("✅ All interactions used 'direct' method (no fallbacks needed)")
+    print("[OK] All interactions used 'direct' method (no fallbacks needed)")
     
     # Step 9: Verify healing log
     print("\n[Step 9] Verifying healing log...")
@@ -201,27 +202,27 @@ def test_saucedemo_universal_complete_workflow(stealth_browser, ai_healer):
     
     latest_event = healing_events[-1] if healing_events else {}
     
-    print(f"📋 Latest Healing Event:")
+    print(f"[LOG] Latest Healing Event:")
     print(f"   Old Locator: {latest_event.get('old_locator', 'N/A')}")
     print(f"   New Locator: {latest_event.get('new_locator', 'N/A')}")
     print(f"   Healing Source: {latest_event.get('healing_source', 'N/A')}")
     print(f"   Latency: {latest_event.get('latency_ms', 'N/A')}ms")
     
     assert 'new_locator' in latest_event, "Healing log should contain new_locator"
-    print("✅ Healing log contains all required fields")
+    print("[OK] Healing log contains all required fields")
     
     # Step 10: Final summary
     print("\n" + "="*80)
     print("TEST SUMMARY:")
     print("="*80)
-    print(f"✅ Stealth browser launched")
-    print(f"✅ AI-Healer repaired broken locator: {broken_locator} → {healed_locator}")
-    print(f"✅ AIInteractor filled 2 fields + clicked button")
-    print(f"✅ Login succeeded (redirected to inventory page)")
-    print(f"✅ All interactions used 'direct' method (site allows automation)")
-    print(f"✅ Healing log and interaction logs complete")
+    print(f"[OK] Stealth browser launched")
+    print(f"[OK] AI-Healer repaired broken locator: {broken_locator} → {healed_locator}")
+    print(f"[OK] AIInteractor filled 2 fields + clicked button")
+    print(f"[OK] Login succeeded (redirected to inventory page)")
+    print(f"[OK] All interactions used 'direct' method (site allows automation)")
+    print(f"[OK] Healing log and interaction logs complete")
     print("="*80)
-    print("✅ TEST PASSED: Universal layer works on automation-friendly sites")
+    print("[OK] TEST PASSED: Universal layer works on automation-friendly sites")
     print("="*80)
 
 
@@ -259,7 +260,7 @@ def test_saucedemo_universal_direct_method_preferred(stealth_browser):
     # Check statistics
     stats = interactor.get_interaction_stats()
     
-    print(f"\n📊 Statistics:")
+    print(f"\n[STATS] Statistics:")
     print(f"   Direct: {stats['direct']}")
     print(f"   JS Inject: {stats['js_inject']}")
     print(f"   Human Typing: {stats['human_typing']}")
@@ -271,7 +272,7 @@ def test_saucedemo_universal_direct_method_preferred(stealth_browser):
     assert stats['human_typing'] == 0, "Should not use human typing"
     assert stats['degraded'] == 0, "Should not degrade"
     
-    print("\n✅ TEST PASSED: AIInteractor correctly prefers direct method")
+    print("\n[OK] TEST PASSED: AIInteractor correctly prefers direct method")
 
 
 def test_saucedemo_universal_interaction_logging(stealth_browser):
@@ -313,7 +314,7 @@ def test_saucedemo_universal_interaction_logging(stealth_browser):
     # Get interaction log
     log = interactor.get_interaction_log()
     
-    print(f"\n📋 Interaction Log ({len(log)} entries):")
+    print(f"\n[LOG] Interaction Log ({len(log)} entries):")
     
     for i, entry in enumerate(log, 1):
         print(f"\n   Entry #{i}:")
@@ -337,9 +338,10 @@ def test_saucedemo_universal_interaction_logging(stealth_browser):
     
     assert len(log) == 3, "Should have 3 logged interactions"
     
-    print("\n✅ TEST PASSED: All interactions properly logged with required fields")
+    print("\n[OK] TEST PASSED: All interactions properly logged with required fields")
 
 
 # Run with: pytest -v tests/universal/test_saucedemo_universal.py -s
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "-s"])
+
