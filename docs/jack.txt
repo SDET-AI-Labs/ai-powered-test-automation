@@ -468,3 +468,152 @@ feat(vision): add VisionAnalyzer and visual validation tests
 ✅ visual validation tests passing (5/5)
 ⚠️ Gemini API latency ~2.3s (avg)
 Next phase suggestion: Add screenshot diff UI report (Streamlit)
+====================================================================
+ai_test_foundation — Phase 5: Vision Dashboard & Visual Diff UI Reports
+
+Module: Vision Dashboard (UI Reporting)
+Owner: Ram
+Mentor: Yogi (via ChatGPT)
+Repository: ai_test_foundation
+
+🎯 Objective
+
+Create an interactive Streamlit-based web dashboard that:
+
+Displays baseline vs current screenshots side-by-side
+
+Overlays detected diff regions
+
+Shows Vision LLM analysis (text + metrics)
+
+Loads history from logs/vision_cache.json and logs/healing_log.json
+
+Exports HTML/PDF reports for audits
+
+🧠 Background Context
+
+Phase 4 gave us:
+
+core/vision_analyzer.py → diff + LLM analysis
+
+Cached diff maps + metadata in logs/vision_cache.json
+
+Logs in logs/healing_log.json with healing_source: "vision"
+
+Phase 5 builds a front-end visualization layer, not new AI logic.
+
+🧰 Work to Do
+1️⃣ Create ui/vision_dashboard.py
+
+Implement a Streamlit app with:
+
+import streamlit as st
+import json, os
+from core.vision_analyzer import VisionAnalyzer
+from PIL import Image, ImageDraw
+
+st.set_page_config(page_title="Vision Dashboard", layout="wide")
+
+# Load caches
+cache_path = "logs/vision_cache.json"
+healing_log = "logs/healing_log.json"
+
+
+✅ Features to implement step-by-step
+
+Feature	Description
+File Upload + Comparison	Upload baseline/current images → call VisionAnalyzer.compare_images() → show diff metrics & image preview side-by-side
+Diff Overlay	Draw bounding boxes from regions in the diff data on top of images
+Cached Runs Viewer	List past analyses from vision_cache.json → click to reopen
+Healing Log Explorer	Display entries with healing_source="vision" → sortable table (timestamp, locator, confidence, latency)
+LLM Insights Panel	Show Vision LLM description + suggested locator
+Export Report	Generate HTML/PDF summary (streamlit-pdf-export or pdfkit)
+Dashboard Metrics	Cache hit rate, average similarity, vision usage percentage
+2️⃣ Create ui/utils/report_exporter.py
+
+Utility for PDF/HTML generation.
+
+def export_visual_report(diff_data: dict, llm_data: dict, output_path="reports/vision_report.html"):
+    """Generate exportable report from diff + analysis."""
+
+
+✅ Include:
+
+Baseline/current/diff thumbnails (base64)
+
+Change summary table
+
+LLM narrative section
+
+Optional PDF conversion
+
+3️⃣ Docs → docs/VISION_DASHBOARD_GUIDE.md
+
+Sections to include:
+
+Dashboard architecture diagram
+
+Key screenshots
+
+Usage workflow (for QA teams)
+
+Report export how-to
+
+Performance considerations
+
+4️⃣ Tests → tests/test_vision_dashboard_ui.py
+
+Lightweight integration tests using pytest-streamlit or mocking:
+
+test_load_cached_entries() – dashboard reads cache
+
+test_render_diff_overlay() – overlay image generated
+
+test_report_exporter_html() – HTML file created
+
+📦 Deliverables
+File	Purpose
+ui/vision_dashboard.py	Interactive dashboard (front end)
+ui/utils/report_exporter.py	Report generation module
+docs/VISION_DASHBOARD_GUIDE.md	User documentation
+tests/test_vision_dashboard_ui.py	UI automation tests
+requirements.txt update	Add streamlit, pdfkit, reportlab
+🧪 Validation Checklist
+streamlit run ui/vision_dashboard.py
+
+
+✅ Expected UI Sections:
+
+Image Comparison Panel
+
+Diff Overlay with bounding boxes
+
+LLM Insights Box
+
+Vision Cache History Sidebar
+
+Export Report Button
+
+Metrics Bar (cache hit rate | avg similarity | vision usage)
+
+✅ Run Tests:
+
+pytest -s -v tests/test_vision_dashboard_ui.py
+
+
+Expected: 3/3 PASS (HTML report generated, cache loaded, diff overlay rendered)
+
+⚠️ Notes
+
+Do not modify core/vision_analyzer.py.
+
+Handle missing cache files gracefully (empty state UI).
+
+Auto-create /reports/ if missing.
+
+Keep UI theme consistent with Streamlit defaults.
+
+Commit message:
+
+feat(ui): add Vision Dashboard for visual diff reporting
+
