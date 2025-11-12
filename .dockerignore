@@ -1,0 +1,90 @@
+# Docker ignore file - excludes unnecessary files from Docker context
+# Phase 6: Docker Deployment & Verification
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# Testing
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+pytest_debug.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (except what's needed)
+docs/*.md
+!docs/DOCKER_DEPLOYMENT_GUIDE.md
+!docs/VISION_TESTING_MODULE.md
+!docs/VISION_DASHBOARD_GUIDE.md
+
+# Logs and reports (mounted as volumes)
+logs/*.json
+logs/*.log
+logs/temp/
+reports/*.html
+reports/*.pdf
+
+# Environment files (mount at runtime, don't bake in)
+.env
+.env.local
+.env.*.local
+
+# Docker files (no need to copy these into the image)
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile
+docker/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Misc
+*.md
+!README.md
+*.txt
+!requirements.txt
+.dockerignore

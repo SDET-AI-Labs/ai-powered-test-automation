@@ -616,4 +616,172 @@ Keep UI theme consistent with Streamlit defaults.
 Commit message:
 
 feat(ui): add Vision Dashboard for visual diff reporting
+====================================================================
+PHASE 6 — DOCKER DEPLOYMENT & VERIFICATION
 
+Module: Dockerized AI TestOps Environment
+Owner: Ram
+Mentor: Yogi (via ChatGPT)
+Repository: ai_test_foundation
+Goal: Build, run, and verify all 3 containers working in harmony.
+
+🎯 Objective
+
+Deploy the entire ai_test_foundation stack using Docker and Docker Compose, verify that:
+
+All services start successfully (API, Dashboard, Tests)
+
+Containers can communicate via Docker network
+
+Shared volumes (logs/, reports/) synchronize correctly
+
+No dependency issues (Pillow, Playwright, wkhtmltopdf)
+
+Performance and caching behave same as native run
+
+🧠 Background
+
+By Phase 5 we finished:
+
+AI-Healer optimization
+
+Vision LLM testing
+
+Streamlit dashboard
+Now we encapsulate all of it into reproducible containers.
+
+🧰 Work to Do
+1️⃣ Build the Containers
+docker-compose build
+
+
+Expected result:
+
+Successfully built ai_test_foundation
+Successfully tagged ai_test_foundation:latest
+
+2️⃣ Run the API Container
+docker-compose up -d api
+
+Verify:
+
+Container: ai_locator_api
+
+Port 8000 active → visit http://localhost:8000/docs
+
+Endpoint /health returns JSON:
+
+{ "status": "healthy", "service": "locator-repair-service", "version": "1.0.0" }
+
+3️⃣ Run the Dashboard Container
+docker-compose up -d dashboard
+
+
+Verify:
+
+Container: ai_vision_dashboard
+
+Port 8501 active → visit http://localhost:8501
+
+UI loads 5 tabs (Image Diff, LLM Analysis, Cache Viewer, Metrics, Export)
+
+Logs folder mounted (new diffs appear live)
+
+4️⃣ Run the Test Runner
+docker-compose run --rm tests
+
+
+Expected output:
+
+collected 60 items
+================== 60 passed in 15.3s ==================
+
+
+Confirm that logs in /logs/ are updated during run.
+
+5️⃣ Cross-Container Verification
+
+Run inside test container shell:
+
+curl http://api:8000/health
+
+
+Expected response:
+{"status":"healthy"}
+✅ proves Docker network connectivity.
+
+Also open browser → http://localhost:8501
+ → Dashboard auto-reads from shared /logs/.
+
+6️⃣ Volume and Cache Verification
+
+Check host logs directory:
+
+ls logs/
+
+
+Should contain:
+
+healing_log.json
+
+vision_cache.json
+
+Open either:
+
+cat logs/healing_log.json | tail -n 5
+
+
+Look for new "healing_source":"vision" entries from inside containers.
+
+7️⃣ Performance Check
+
+Run:
+
+docker stats
+
+
+Confirm:
+
+API container ~150 MB RAM
+
+Dashboard ~200 MB RAM
+
+Tests exit cleanly after run
+
+Total under 500 MB → excellent.
+
+8️⃣ Clean Down
+
+When finished:
+
+docker-compose down -v
+
+
+Removes all containers, networks, volumes cleanly.
+
+📊 Expected Final Output
+Verification Item	Expected Result
+Build	✅ Successful
+API Container	✅ Running, 8000 healthy
+Dashboard	✅ Live at 8501
+Tests	✅ 100 % pass
+Log Sharing	✅ Confirmed
+Cross-Network	✅ Confirmed
+Volume Sync	✅ Confirmed
+Memory Usage	✅ ≤ 500 MB
+Commit	✅ Docker verified, tag v6.0
+⚠️ Notes
+
+Mount your .env file at runtime:
+
+docker run --env-file .env ai_test_foundation
+
+
+If wkhtmltopdf slow on Windows → use HTML export.
+
+Never bake secrets inside images.
+
+To rebuild after code changes:
+
+docker-compose build --no-cache
+====================================================================
